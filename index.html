@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Order a car</title>
+  </head>
+  <body>
+    <form id="form">
+      <input type="text" id="carName" placeholder="Car name" required />
+      <button type="submit">Submit</button>
+    </form>
+    <script>
+      // Ensure Telegram WebApp SDK is available
+      const tg = window.Telegram.WebApp;
+
+      // Expand WebApp to full screen
+      tg.expand();
+
+      // Retrieve user data from Telegram WebApp
+      const user = tg.initDataUnsafe?.user;
+
+      // If user information is not available, fallback to basic error
+      if (!user) {
+        alert("Unable to retrieve user data from Telegram.");
+      }
+
+      const form = document.getElementById("form");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const carName = document.getElementById("carName").value.trim();
+        if (!carName) {
+          alert("Please enter a car name.");
+          return;
+        }
+
+        try {
+          // Send car name to your server
+          const response = await fetch(
+            `http://localhost:3000/api/order/${user.id}/car`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                carName,
+              }),
+            },
+          );
+
+          const result = await response.json();
+          if (response.ok) {
+            alert("Car name submitted successfully!");
+            tg.close(); // Close the WebApp
+          } else {
+            alert(`Error: ${result.error}`);
+          }
+        } catch (error) {
+          console.error("Failed to submit car name:", error);
+          alert("Failed to submit car name. Please try again later.");
+        }
+      });
+    </script>
+  </body>
+</html>
