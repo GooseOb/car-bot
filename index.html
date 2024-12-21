@@ -51,20 +51,25 @@
       <span id="message"></span>
     </form>
     <script>
-      const tg = window.Telegram.WebApp;
-
-      const user = tg.initDataUnsafe?.user;
-
       const message = document.getElementById("message");
       const say = (msg) => {
         message.textContent = msg;
       };
 
-      say("hello");
+      const tg = window.Telegram?.WebApp;
+
+      let user;
+      if (!tg) {
+        say("Telegram not found. Please open this page from the Telegram app.");
+      } else {
+        user = tg.initDataUnsafe?.user;
+      }
 
       if (!user) {
         say("Unable to retrieve user data from Telegram.");
       }
+
+      const id = new URL(location.href).searchParams.get("id");
 
       const form = document.getElementById("form");
 
@@ -80,7 +85,7 @@
 
         try {
           const response = await fetch(
-            `http://localhost:3000/api/order/${user.id}/car`,
+            `http://localhost:3000/api/order/${id}/car`,
             {
               method: "POST",
               headers: {
