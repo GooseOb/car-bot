@@ -11,10 +11,11 @@ const distPath = path.join(
 
 const app = express();
 
-const { TELEGRAM_TOKEN, PORT } = process.env;
+const { TELEGRAM_TOKEN, APP_URL, PORT } = process.env;
 
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
+const orders = new Map(); // phoneNumber -> [{ id, name, phone }, ...]
 const userMapping = new Map(); // phoneNumber -> chatId
 const isUserPhone = (chatId) => {
   for (const { 1: value } of userMapping) {
@@ -22,13 +23,29 @@ const isUserPhone = (chatId) => {
   }
   return false;
 };
-const orderQueue = new Map(); // phoneNumber -> [{ id, name, phone }, ...]
 
 app.use(express.static(distPath));
 app.use(bodyParser.json());
 app.get("*", (req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
+
+const sendOrder = (chatId, id, name, phone) => {
+  bot.sendMessage(chatId, `Order #${id}\nName: ${name}\nPhone: ${phone}`, {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: "Car",
+            web_app: {
+              url: `${APP_URL}?orderId=${id}`,
+            },
+          },
+        ],
+      ],
+    },
+  });
+};
 
 bot.on("message", (msg) => {
   if (msg.contact) {
@@ -42,15 +59,9 @@ bot.on("message", (msg) => {
 
     userMapping.set(phoneNumber, chatId);
 
-    for (const { id, name, phone } of orderQueue.get(phoneNumber)) {
-      bot.sendMessage(chatId, `Order #${id}\nName: ${name}\nPhone: ${phone}`, {
-        reply_markup: {
-          inline_keyboard: [[{ text: "Car", callback_data: `car_${id}` }]],
-        },
-      });
+    for (const { id, name, phone } of orders.get(phoneNumber)) {
+      sendOrder(chatId, id, name, phone);
     }
-
-    orderQueue.delete(phoneNumber);
   }
 });
 
@@ -78,58 +89,32 @@ bot.onText(/\/start/, (msg) => {
   }
 });
 
-// bot.on("callback_query", (query) => {
-//   const [type, id] = query.data.split("_");
-//   if (type === "car") {
-//     bot.sendMessage(
-//       query.message.chat.id,
-//       `Please enter the car name for order #${id}`,
-//     );
-//   }
-// });
-
 app.post("/api/order/:id", (req, res) => {
   const { id } = req.params;
   const { name, phone } = req.body;
 
-  let message;
-
   if (userMapping.has(phone)) {
-    bot.sendMessage(
-      userMapping.get(phone),
-      `Order #${id}\nName: ${name}\nPhone: ${phone}`,
-      {
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: "Car",
-                webapp: {
-                  url: `${APP_URL}?orderId=${id}`,
-                },
-              },
-            ],
-          ],
-        },
-      },
-    );
-    message = "Order sent to Telegram.";
-  } else {
-    if (!orderQueue.has(phone)) {
-      orderQueue.set(phone, []);
-    }
-    orderQueue.get(phone).push({ id, name, phone });
-    message = "Order queued until user interacts with the bot.";
+    sendOrder(userMapping.get(phone), id, name, phone);
   }
 
-  res.status(200).send({ message });
+  if (!orders.has(phone)) {
+    orders.set(phone, []);
+  }
+  orders.get(phone).push({ id, name, phone });
+
+  res.status(200).send({ message: "Order saved" });
 });
 
 app.post("/api/order/:id/car", (req, res) => {
   const { id } = req.params;
-  const { carName, phone } = req.body;
+  const { carName } = req.body;
+
+  const [phone, order] = orders
+    .entries()
+    .find(({ 1: orders }) => orders.some((order) => order.id === id));
 
   const chatId = userMapping.get(phone);
+
   if (!chatId) {
     return res
       .status(400)
@@ -137,6 +122,13 @@ app.post("/api/order/:id/car", (req, res) => {
   }
 
   bot.sendMessage(chatId, `Order #${id}\nCar: ${carName}`);
+
+  const ownerChatId = userMapping.get(OWNER_PHONE);
+  bot.sendMessage(
+    ownerChatId,
+    `Order #${id}\nCar: ${carName}\nName: ${order.name}\nPhone: ${order.phone}`,
+  );
+
   res.status(200).send({ message: "Car name sent to Telegram." });
 });
 

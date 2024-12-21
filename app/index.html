@@ -2,61 +2,108 @@
 <html>
   <head>
     <title>Order a car</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+      }
+      input {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+      button {
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        background-color: #007bff;
+        color: #fff;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      #message {
+        color: red;
+      }
+    </style>
   </head>
   <body>
     <form id="form">
       <input type="text" id="carName" placeholder="Car name" required />
       <button type="submit">Submit</button>
+      <span id="message"></span>
     </form>
     <script>
-      // Ensure Telegram WebApp SDK is available
-      const tg = window.Telegram.WebApp;
+      const API_URL = "http://localhost:3000/api/";
+      const message = document.getElementById("message");
+      const say = (msg) => {
+        message.textContent = msg;
+      };
 
-      // Expand WebApp to full screen
-      tg.expand();
+      const tg = window.Telegram?.WebApp;
 
-      // Retrieve user data from Telegram WebApp
-      const user = tg.initDataUnsafe?.user;
-
-      // If user information is not available, fallback to basic error
-      if (!user) {
-        alert("Unable to retrieve user data from Telegram.");
+      let user;
+      if (!tg) {
+        say("Telegram not found. Please open this page from the Telegram app.");
+      } else {
+        user = tg.initDataUnsafe?.user;
       }
+
+      if (!user) {
+        say("Unable to retrieve user data from Telegram.");
+      }
+
+      const id = new URL(location.href).searchParams.get("orderId");
 
       const form = document.getElementById("form");
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        say("hello 2");
 
         const carName = document.getElementById("carName").value.trim();
         if (!carName) {
-          alert("Please enter a car name.");
+          say("Please enter a car name.");
           return;
         }
 
         try {
-          // Send car name to your server
-          const response = await fetch(`/api/telegram/order`, {
+          const response = await fetch(`${API_URL}/order/${id}/car`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
               carName,
-              userId: user.id, // Telegram user ID
             }),
           });
 
           const result = await response.json();
           if (response.ok) {
-            alert("Car name submitted successfully!");
-            tg.close(); // Close the WebApp
+            say("Car name submitted successfully!");
+            tg?.close();
           } else {
-            alert(`Error: ${result.error}`);
+            say(`Error: ${result.error}`);
           }
         } catch (error) {
-          console.error("Failed to submit car name:", error);
-          alert("Failed to submit car name. Please try again later.");
+          say("Failed to submit car name. Please try again later.");
         }
       });
     </script>
