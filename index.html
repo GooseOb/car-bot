@@ -9,16 +9,10 @@
       <button type="submit">Submit</button>
     </form>
     <script>
-      // Ensure Telegram WebApp SDK is available
       const tg = window.Telegram.WebApp;
 
-      // Expand WebApp to full screen
-      tg.expand();
-
-      // Retrieve user data from Telegram WebApp
       const user = tg.initDataUnsafe?.user;
 
-      // If user information is not available, fallback to basic error
       if (!user) {
         alert("Unable to retrieve user data from Telegram.");
       }
@@ -35,7 +29,6 @@
         }
 
         try {
-          // Send car name to your server
           const response = await fetch(
             `http://localhost:3000/api/order/${user.id}/car`,
             {
@@ -52,7 +45,7 @@
           const result = await response.json();
           if (response.ok) {
             alert("Car name submitted successfully!");
-            tg.close(); // Close the WebApp
+            tg.close();
           } else {
             alert(`Error: ${result.error}`);
           }
