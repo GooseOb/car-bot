@@ -39,20 +39,29 @@
       button:hover {
         background-color: #0056b3;
       }
+      #message {
+        color: red;
+      }
     </style>
   </head>
   <body>
     <form id="form">
       <input type="text" id="carName" placeholder="Car name" required />
       <button type="submit">Submit</button>
+      <span id="message"></span>
     </form>
     <script>
       const tg = window.Telegram.WebApp;
 
       const user = tg.initDataUnsafe?.user;
 
+      const message = document.getElementById("message");
+      const say = (msg) => {
+        message.textContent = msg;
+      };
+
       if (!user) {
-        alert("Unable to retrieve user data from Telegram.");
+        say("Unable to retrieve user data from Telegram.");
       }
 
       const form = document.getElementById("form");
@@ -62,7 +71,7 @@
 
         const carName = document.getElementById("carName").value.trim();
         if (!carName) {
-          alert("Please enter a car name.");
+          say("Please enter a car name.");
           return;
         }
 
@@ -82,14 +91,14 @@
 
           const result = await response.json();
           if (response.ok) {
-            alert("Car name submitted successfully!");
+            say("Car name submitted successfully!");
             tg.close();
           } else {
-            alert(`Error: ${result.error}`);
+            say(`Error: ${result.error}`);
           }
         } catch (error) {
           console.error("Failed to submit car name:", error);
-          alert("Failed to submit car name. Please try again later.");
+          say("Failed to submit car name. Please try again later.");
         }
       });
     </script>
