@@ -1,0 +1,21 @@
+{
+  "name": "car-bot",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env index.js"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "express": "^4.21.2",
+    "node-telegram-bot-api": "^0.66.0",
+    "react-router": "^7.1.0",
+    "uuid": "^11.0.3"
+  }
+}
