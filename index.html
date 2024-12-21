@@ -60,6 +60,8 @@
         message.textContent = msg;
       };
 
+      say("hello");
+
       if (!user) {
         say("Unable to retrieve user data from Telegram.");
       }
@@ -68,6 +70,7 @@
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        say("hello 2");
 
         const carName = document.getElementById("carName").value.trim();
         if (!carName) {
