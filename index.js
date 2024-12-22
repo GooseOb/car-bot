@@ -3,6 +3,7 @@ import bodyParser from "body-parser";
 import TelegramBot from "node-telegram-bot-api";
 import path from "path";
 import { fileURLToPath } from "url";
+import cors from "cors";
 
 const distPath = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -11,7 +12,7 @@ const distPath = path.join(
 
 const app = express();
 
-const { TELEGRAM_TOKEN, APP_URL, PORT } = process.env;
+const { TELEGRAM_TOKEN, APP_URL, PORT, OWNER_PHONE } = process.env;
 
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
@@ -24,6 +25,7 @@ const isUserPhone = (chatId) => {
   return false;
 };
 
+app.use(cors());
 app.use(express.static(distPath));
 app.use(bodyParser.json());
 app.get("*", (req, res) => {
@@ -123,11 +125,13 @@ app.post("/api/order/:id/car", (req, res) => {
 
   bot.sendMessage(chatId, `Order #${id}\nCar: ${carName}`);
 
-  const ownerChatId = userMapping.get(OWNER_PHONE);
-  bot.sendMessage(
-    ownerChatId,
-    `Order #${id}\nCar: ${carName}\nName: ${order.name}\nPhone: ${order.phone}`,
-  );
+  if (OWNER_PHONE) {
+    const ownerChatId = userMapping.get(OWNER_PHONE);
+    bot.sendMessage(
+      ownerChatId,
+      `Order #${id}\nCar: ${carName}\nName: ${order.name}\nPhone: ${order.phone}`,
+    );
+  }
 
   res.status(200).send({ message: "Car name sent to Telegram." });
 });

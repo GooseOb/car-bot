@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
     "express": "^4.21.2",
     "gh-pages": "^6.2.0",
     "node-telegram-bot-api": "^0.66.0",
