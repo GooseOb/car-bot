@@ -99,7 +99,10 @@
             say(`Error: ${result.error}`);
           }
         } catch (error) {
-          say("Failed to submit car name. Please try again later.");
+          say(
+            "Failed to submit car name. Please try again later.\n" +
+              response.error,
+          );
         }
       });
     </script>
