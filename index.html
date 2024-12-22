@@ -43,6 +43,7 @@
         color: red;
       }
     </style>
+    <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
   </head>
   <body>
     <form id="form">
@@ -51,6 +52,7 @@
       <span id="message"></span>
     </form>
     <script>
+      const API_URL = "http://localhost:3000/api/";
       const message = document.getElementById("message");
       const say = (msg) => {
         message.textContent = msg;
@@ -84,18 +86,15 @@
         }
 
         try {
-          const response = await fetch(
-            `http://localhost:3000/api/order/${id}/car`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                carName,
-              }),
+          const response = await fetch(`${API_URL}/order/${id}/car`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-          );
+            body: JSON.stringify({
+              carName,
+            }),
+          });
 
           const result = await response.json();
           if (response.ok) {
