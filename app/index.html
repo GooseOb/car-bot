@@ -43,6 +43,7 @@
         color: red;
       }
     </style>
+    <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
   </head>
   <body>
     <form id="form">
@@ -52,19 +53,15 @@
     </form>
     <script>
       const API_URL = "http://localhost:3000/api/";
+
       const message = document.getElementById("message");
       const say = (msg) => {
         message.textContent = msg;
       };
 
-      const tg = window.Telegram?.WebApp;
+      const tg = window.Telegram.WebApp;
 
-      let user;
-      if (!tg) {
-        say("Telegram not found. Please open this page from the Telegram app.");
-      } else {
-        user = tg.initDataUnsafe?.user;
-      }
+      const user = tg.initDataUnsafe?.user;
 
       if (!user) {
         say("Unable to retrieve user data from Telegram.");
@@ -76,7 +73,6 @@
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        say("hello 2");
 
         const carName = document.getElementById("carName").value.trim();
         if (!carName) {
@@ -98,7 +94,7 @@
           const result = await response.json();
           if (response.ok) {
             say("Car name submitted successfully!");
-            tg?.close();
+            tg.close();
           } else {
             say(`Error: ${result.error}`);
           }
